@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ortak Masraf Paylaştırıcı</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --surface-2: #eef2f6;
+      --text: #17202a;
+      --muted: #687385;
+      --line: #dce2ea;
+      --accent: #1976d2;
+      --accent-dark: #105ca7;
+      --danger: #c62828;
+      --success: #13795b;
+      --warning: #a45b00;
+      --shadow: 0 14px 38px rgba(27, 39, 51, 0.08);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        linear-gradient(180deg, rgba(25, 118, 210, 0.08), transparent 360px),
+        var(--bg);
+      color: var(--text);
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .app {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 22px;
+      align-items: end;
+      margin-bottom: 24px;
+    }
+
+    .title h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .title p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 760px;
+      line-height: 1.55;
+    }
+
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 20px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(310px, 390px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    section {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .panel-header p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .panel-body {
+      padding: 16px;
+    }
+
+    .controls-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 11px 12px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      min-height: 42px;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.14);
+    }
+
+    .primary,
+    .secondary,
+    .danger {
+      min-height: 42px;
+      padding: 0 14px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .primary:hover {
+      background: var(--accent-dark);
+    }
+
+    .secondary {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .danger {
+      width: 42px;
+      padding: 0;
+      background: #fff1f1;
+      color: var(--danger);
+      border: 1px solid #ffd0d0;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .people-list,
+    .expenses-list,
+    .results-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .person-row,
+    .expense-row {
+      display: grid;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .person-row {
+      grid-template-columns: 1fr 42px;
+    }
+
+    .expense-row {
+      grid-template-columns: 1.1fr 0.9fr 0.9fr 42px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfcfe;
+    }
+
+    .result-item,
+    .balance-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfcfe;
+      padding: 12px 14px;
+      line-height: 1.35;
+    }
+
+    .result-item strong,
+    .balance-item strong {
+      color: var(--text);
+    }
+
+    .amount {
+      color: var(--accent);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .positive {
+      color: var(--success);
+    }
+
+    .negative {
+      color: var(--danger);
+    }
+
+    .neutral {
+      color: var(--muted);
+    }
+
+    .empty {
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      color: var(--muted);
+      padding: 16px;
+      text-align: center;
+      background: #fbfcfe;
+      line-height: 1.45;
+    }
+
+    .stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .warning {
+      margin-top: 12px;
+      color: var(--warning);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 900px) {
+      .topbar,
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-strip {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 680px) {
+      .app {
+        width: min(100% - 20px, 1180px);
+        padding-top: 18px;
+      }
+
+      .summary-strip,
+      .expense-row {
+        grid-template-columns: 1fr;
+      }
+
+      .danger {
+        width: 100%;
+      }
+
+      .result-item,
+      .balance-item {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="topbar">
+      <div class="title">
+        <h1>Ortak Masraf Paylaştırıcı</h1>
+      </div>
+
+      <div class="summary-strip" aria-live="polite">
+        <div class="metric">
+          <span>Toplam masraf</span>
+          <strong id="totalAmount">0,00 TL</strong>
+        </div>
+        <div class="metric">
+          <span>Kişi başı</span>
+          <strong id="perPersonAmount">0,00 TL</strong>
+        </div>
+        <div class="metric">
+          <span>Katılımcı</span>
+          <strong id="peopleCountMetric">0 kişi</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="workspace">
+      <section>
+        <div class="panel-header">
+          <div>
+            <h2>Katılımcılar</h2>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="controls-row">
+            <label>
+              Kişi sayısı
+              <input id="personCountInput" type="number" min="1" max="50" step="1" value="4">
+            </label>
+            <button class="secondary" id="applyCountButton" type="button">Uygula</button>
+          </div>
+          <div class="people-list" id="peopleList"></div>
+          <div class="actions">
+            <button class="secondary" id="addPersonButton" type="button">+ Kişi ekle</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="stack">
+        <section>
+          <div class="panel-header">
+            <div>
+              <h2>Harcamalar</h2>
+            </div>
+            <button class="primary" id="addExpenseButton" type="button">+ Harcama</button>
+          </div>
+          <div class="panel-body">
+            <div class="expenses-list" id="expensesList"></div>
+            <p class="warning" id="formWarning" hidden></p>
+          </div>
+        </section>
+
+        <section>
+          <div class="panel-header">
+            <div>
+              <h2>Sonuç</h2>
+            </div>
+            <button class="secondary" id="clearButton" type="button">Temizle</button>
+          </div>
+          <div class="panel-body">
+            <div class="results-list" id="settlementsList"></div>
+            <div class="results-list" id="balancesList" style="margin-top: 14px;"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const currencyFormatter = new Intl.NumberFormat("tr-TR", {
+      style: "currency",
+      currency: "TRY"
+    });
+
+    let state = {
+      people: [
+        { id: crypto.randomUUID(), name: "Kişi 1" },
+        { id: crypto.randomUUID(), name: "Kişi 2" },
+        { id: crypto.randomUUID(), name: "Kişi 3" },
+        { id: crypto.randomUUID(), name: "Kişi 4" }
+      ],
+      expenses: []
+    };
+
+    const elements = {
+      personCountInput: document.getElementById("personCountInput"),
+      applyCountButton: document.getElementById("applyCountButton"),
+      addPersonButton: document.getElementById("addPersonButton"),
+      addExpenseButton: document.getElementById("addExpenseButton"),
+      clearButton: document.getElementById("clearButton"),
+      peopleList: document.getElementById("peopleList"),
+      expensesList: document.getElementById("expensesList"),
+      settlementsList: document.getElementById("settlementsList"),
+      balancesList: document.getElementById("balancesList"),
+      totalAmount: document.getElementById("totalAmount"),
+      perPersonAmount: document.getElementById("perPersonAmount"),
+      peopleCountMetric: document.getElementById("peopleCountMetric"),
+      formWarning: document.getElementById("formWarning")
+    };
+
+    function makePerson(name = "") {
+      return { id: crypto.randomUUID(), name };
+    }
+
+    function makeExpense(payerId = state.people[0]?.id || "") {
+      return { id: crypto.randomUUID(), payerId, title: "", amount: "" };
+    }
+
+    function formatMoney(value) {
+      return currencyFormatter.format(Math.round((Number(value) + Number.EPSILON) * 100) / 100);
+    }
+
+    function getPersonName(personId) {
+      const person = state.people.find((item) => item.id === personId);
+      return person?.name.trim() || "İsimsiz kişi";
+    }
+
+    function normalizeState() {
+      if (state.people.length === 0) {
+        state.people.push(makePerson("Kişi 1"));
+      }
+
+      state.people.forEach((person, index) => {
+        if (!person.name.trim()) {
+          person.name = `Kişi ${index + 1}`;
+        }
+      });
+
+      state.expenses.forEach((expense) => {
+        if (!state.people.some((person) => person.id === expense.payerId)) {
+          expense.payerId = state.people[0].id;
+        }
+      });
+    }
+
+    function calculate() {
+      const validExpenses = state.expenses
+        .map((expense) => ({
+          ...expense,
+          amount: Number(String(expense.amount).replace(",", "."))
+        }))
+        .filter((expense) => expense.payerId && Number.isFinite(expense.amount) && expense.amount > 0);
+
+      const total = validExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+      const perPerson = state.people.length ? total / state.people.length : 0;
+      const paidByPerson = new Map(state.people.map((person) => [person.id, 0]));
+
+      validExpenses.forEach((expense) => {
+        paidByPerson.set(expense.payerId, (paidByPerson.get(expense.payerId) || 0) + expense.amount);
+      });
+
+      const balances = state.people.map((person) => {
+        const paid = paidByPerson.get(person.id) || 0;
+        return {
+          id: person.id,
+          name: getPersonName(person.id),
+          paid,
+          balance: paid - perPerson
+        };
+      });
+
+      const debtors = balances
+        .filter((person) => person.balance < -0.009)
+        .map((person) => ({ ...person, amount: Math.abs(person.balance) }))
+        .sort((a, b) => b.amount - a.amount);
+
+      const creditors = balances
+        .filter((person) => person.balance > 0.009)
+        .map((person) => ({ ...person, amount: person.balance }))
+        .sort((a, b) => b.amount - a.amount);
+
+      const settlements = [];
+      let debtorIndex = 0;
+      let creditorIndex = 0;
+
+      while (debtorIndex < debtors.length && creditorIndex < creditors.length) {
+        const debtor = debtors[debtorIndex];
+        const creditor = creditors[creditorIndex];
+        const amount = Math.min(debtor.amount, creditor.amount);
+
+        if (amount > 0.009) {
+          settlements.push({
+            from: debtor.name,
+            to: creditor.name,
+            amount
+          });
+        }
+
+        debtor.amount -= amount;
+        creditor.amount -= amount;
+
+        if (debtor.amount < 0.01) debtorIndex += 1;
+        if (creditor.amount < 0.01) creditorIndex += 1;
+      }
+
+      return { validExpenses, total, perPerson, balances, settlements };
+    }
+
+    function renderPeople() {
+      elements.peopleList.innerHTML = "";
+
+      state.people.forEach((person, index) => {
+        const row = document.createElement("div");
+        row.className = "person-row";
+
+        const label = document.createElement("label");
+        label.textContent = `${index + 1}. kişi`;
+
+        const input = document.createElement("input");
+        input.value = person.name;
+        input.placeholder = "İsim";
+        input.addEventListener("input", () => {
+          person.name = input.value;
+          renderExpenses();
+          renderResults();
+        });
+
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "danger";
+        deleteButton.type = "button";
+        deleteButton.title = "Kişiyi sil";
+        deleteButton.textContent = "×";
+        deleteButton.disabled = state.people.length === 1;
+        deleteButton.addEventListener("click", () => {
+          state.people = state.people.filter((item) => item.id !== person.id);
+          state.expenses = state.expenses.map((expense) => (
+            expense.payerId === person.id ? { ...expense, payerId: state.people[0]?.id || "" } : expense
+          ));
+          render();
+        });
+
+        label.appendChild(input);
+        row.append(label, deleteButton);
+        elements.peopleList.appendChild(row);
+      });
+    }
+
+    function renderExpenses() {
+      elements.expensesList.innerHTML = "";
+
+      if (state.expenses.length === 0) {
+        elements.expensesList.innerHTML = '<div class="empty">Henüz harcama yok.</div>';
+        return;
+      }
+
+      state.expenses.forEach((expense) => {
+        const row = document.createElement("div");
+        row.className = "expense-row";
+
+        const payerLabel = document.createElement("label");
+        payerLabel.textContent = "Ödeyen";
+        const payerSelect = document.createElement("select");
+
+        state.people.forEach((person) => {
+          const option = document.createElement("option");
+          option.value = person.id;
+          option.textContent = getPersonName(person.id);
+          option.selected = person.id === expense.payerId;
+          payerSelect.appendChild(option);
+        });
+
+        payerSelect.addEventListener("change", () => {
+          expense.payerId = payerSelect.value;
+          renderResults();
+        });
+        payerLabel.appendChild(payerSelect);
+
+        const titleLabel = document.createElement("label");
+        titleLabel.textContent = "Açıklama";
+        const titleInput = document.createElement("input");
+        titleInput.value = expense.title;
+        titleInput.placeholder = "Market, yakıt...";
+        titleInput.addEventListener("input", () => {
+          expense.title = titleInput.value;
+        });
+        titleLabel.appendChild(titleInput);
+
+        const amountLabel = document.createElement("label");
+        amountLabel.textContent = "Tutar";
+        const amountInput = document.createElement("input");
+        amountInput.inputMode = "decimal";
+        amountInput.value = expense.amount;
+        amountInput.placeholder = "0";
+        amountInput.addEventListener("input", () => {
+          expense.amount = amountInput.value;
+          renderResults();
+        });
+        amountLabel.appendChild(amountInput);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "danger";
+        deleteButton.type = "button";
+        deleteButton.title = "Harcamayı sil";
+        deleteButton.textContent = "×";
+        deleteButton.addEventListener("click", () => {
+          state.expenses = state.expenses.filter((item) => item.id !== expense.id);
+          render();
+        });
+
+        row.append(payerLabel, titleLabel, amountLabel, deleteButton);
+        elements.expensesList.appendChild(row);
+      });
+    }
+
+    function renderResults() {
+      normalizeState();
+      const { validExpenses, total, perPerson, balances, settlements } = calculate();
+
+      elements.totalAmount.textContent = formatMoney(total);
+      elements.perPersonAmount.textContent = formatMoney(perPerson);
+      elements.peopleCountMetric.textContent = `${state.people.length} kişi`;
+      elements.personCountInput.value = state.people.length;
+
+      const invalidCount = state.expenses.length - validExpenses.length;
+      elements.formWarning.hidden = invalidCount === 0;
+      elements.formWarning.textContent = invalidCount
+        ? `${invalidCount} harcama satırı tutarı boş, sıfır veya geçersiz olduğu için hesaba katılmadı.`
+        : "";
+
+      elements.settlementsList.innerHTML = "";
+      if (settlements.length === 0) {
+        elements.settlementsList.innerHTML = '<div class="empty">Dengelenecek ödeme bulunmuyor.</div>';
+      } else {
+        settlements.forEach((settlement) => {
+          const item = document.createElement("div");
+          item.className = "result-item";
+          item.innerHTML = `<span><strong>${settlement.from}</strong>, <strong>${settlement.to}</strong> kişisine ödesin</span><span class="amount">${formatMoney(settlement.amount)}</span>`;
+          elements.settlementsList.appendChild(item);
+        });
+      }
+
+      elements.balancesList.innerHTML = "";
+      balances.forEach((person) => {
+        const item = document.createElement("div");
+        item.className = "balance-item";
+
+        const className = person.balance > 0.009 ? "positive" : person.balance < -0.009 ? "negative" : "neutral";
+        const text = person.balance > 0.009
+          ? `Alacaklı: ${formatMoney(person.balance)}`
+          : person.balance < -0.009
+            ? `Borçlu: ${formatMoney(Math.abs(person.balance))}`
+            : "Dengede";
+
+        item.innerHTML = `<span><strong>${person.name}</strong> ödedi: ${formatMoney(person.paid)}</span><span class="${className}">${text}</span>`;
+        elements.balancesList.appendChild(item);
+      });
+    }
+
+    function render() {
+      normalizeState();
+      renderPeople();
+      renderExpenses();
+      renderResults();
+    }
+
+    function applyPersonCount() {
+      const count = Math.max(1, Math.min(50, Number(elements.personCountInput.value) || 1));
+      const nextPeople = [...state.people];
+
+      while (nextPeople.length < count) {
+        nextPeople.push(makePerson(`Kişi ${nextPeople.length + 1}`));
+      }
+
+      if (nextPeople.length > count) {
+        const removedIds = new Set(nextPeople.slice(count).map((person) => person.id));
+        state.expenses = state.expenses.map((expense) => (
+          removedIds.has(expense.payerId) ? { ...expense, payerId: nextPeople[0]?.id || "" } : expense
+        ));
+        nextPeople.length = count;
+      }
+
+      state.people = nextPeople;
+      render();
+    }
+
+    elements.applyCountButton.addEventListener("click", applyPersonCount);
+    elements.personCountInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") applyPersonCount();
+    });
+    elements.addPersonButton.addEventListener("click", () => {
+      state.people.push(makePerson(`Kişi ${state.people.length + 1}`));
+      render();
+    });
+    elements.addExpenseButton.addEventListener("click", () => {
+      state.expenses.push(makeExpense());
+      render();
+    });
+    elements.clearButton.addEventListener("click", () => {
+      state.expenses = [];
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
