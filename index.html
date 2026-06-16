@@ -312,6 +312,14 @@
       line-height: 1.4;
     }
 
+    .copy-status {
+      min-height: 18px;
+      margin: 10px 0 0;
+      color: var(--success);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
     @media (max-width: 900px) {
       .topbar,
       .workspace {
@@ -410,11 +418,15 @@
             <div>
               <h2>Sonuç</h2>
             </div>
-            <button class="secondary" id="clearButton" type="button">Temizle</button>
+            <div class="actions" style="margin-top: 0;">
+              <button class="primary" id="copyResultButton" type="button">Sonucu kopyala</button>
+              <button class="secondary" id="clearButton" type="button">Temizle</button>
+            </div>
           </div>
           <div class="panel-body">
             <div class="results-list" id="settlementsList"></div>
             <div class="results-list" id="balancesList" style="margin-top: 14px;"></div>
+            <p class="copy-status" id="copyStatus" aria-live="polite"></p>
           </div>
         </section>
       </div>
@@ -442,6 +454,7 @@
       applyCountButton: document.getElementById("applyCountButton"),
       addPersonButton: document.getElementById("addPersonButton"),
       addExpenseButton: document.getElementById("addExpenseButton"),
+      copyResultButton: document.getElementById("copyResultButton"),
       clearButton: document.getElementById("clearButton"),
       peopleList: document.getElementById("peopleList"),
       expensesList: document.getElementById("expensesList"),
@@ -450,6 +463,7 @@
       totalAmount: document.getElementById("totalAmount"),
       perPersonAmount: document.getElementById("perPersonAmount"),
       peopleCountMetric: document.getElementById("peopleCountMetric"),
+      copyStatus: document.getElementById("copyStatus"),
       formWarning: document.getElementById("formWarning")
     };
 
@@ -701,6 +715,61 @@
       });
     }
 
+    function createShareText() {
+      const { validExpenses, total, settlements } = calculate();
+      const lines = [
+        "Ortak masraf özeti",
+        ""
+      ];
+
+      if (validExpenses.length > 0) {
+        lines.push("Harcamalar:");
+        validExpenses.forEach((expense) => {
+          const title = expense.title.trim() || "Harcama";
+          lines.push(`${title}: ${formatMoney(expense.amount)} (${getPersonName(expense.payerId)} ödedi)`);
+        });
+      } else {
+        lines.push("Harcamalar: Henüz harcama yok.");
+      }
+
+      lines.push("", `Toplam harcama: ${formatMoney(total)}`, "");
+
+      if (settlements.length > 0) {
+        lines.push("Ödeme planı:");
+        settlements.forEach((settlement) => {
+          lines.push(`${settlement.from} -> ${settlement.to}: ${formatMoney(settlement.amount)}`);
+        });
+      } else {
+        lines.push("Ödeme planı: Dengelenecek ödeme yok.");
+      }
+
+      return lines.join("\n");
+    }
+
+    async function copyShareText() {
+      const text = createShareText();
+
+      try {
+        await navigator.clipboard.writeText(text);
+        elements.copyStatus.textContent = "Sonuç kopyalandı.";
+      } catch (error) {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
+        elements.copyStatus.textContent = "Sonuç kopyalandı.";
+      }
+
+      window.setTimeout(() => {
+        elements.copyStatus.textContent = "";
+      }, 2500);
+    }
+
     function render() {
       normalizeState();
       renderPeople();
@@ -740,6 +809,7 @@
       state.expenses.push(makeExpense());
       render();
     });
+    elements.copyResultButton.addEventListener("click", copyShareText);
     elements.clearButton.addEventListener("click", () => {
       state.expenses = [];
       render();
