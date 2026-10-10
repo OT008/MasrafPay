@@ -346,9 +346,23 @@
     .expense-row > label { min-width: 0; }
     .expense-participants { grid-column: 1 / -1; min-width: 0; margin: 0; padding: 10px; border: 1px solid var(--color-border); border-radius: 7px; }
     .expense-participants legend { font-size: 13px; font-weight: 700; color: var(--color-text-secondary); }
-    .participant-options { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 8px; }
-    .check-label { display: flex; align-items: center; gap: 7px; min-height: 32px; overflow-wrap: anywhere; }
-    .check-label input { width: 18px; height: 18px; min-height: 0; padding: 0; flex: 0 0 auto; accent-color: var(--color-primary-dark); }
+    .participant-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-top: 8px; }
+    .check-label { position: relative; display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; padding: 8px 11px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); overflow-wrap: anywhere; cursor: pointer; user-select: none; }
+    .check-label:has(input:checked) { border-color: var(--color-primary); background: var(--color-primary-light); color: var(--color-primary-dark); }
+    .check-label > input[type="checkbox"] { position: absolute; width: 1px; height: 1px; min-height: 0; opacity: 0; pointer-events: none; }
+    .split-controls { display: grid; gap: 10px; margin-bottom: 12px; }
+    .sharing-toggles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .mode-option { position: relative; display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; padding: 8px 11px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-text-secondary); font-size: 13px; font-weight: 700; cursor: pointer; user-select: none; }
+    .mode-option input { position: absolute; width: 1px; height: 1px; min-height: 0; opacity: 0; pointer-events: none; }
+    .mode-option:has(input:checked) { border-color: var(--color-primary); background: var(--color-primary-light); color: var(--color-primary-dark); }
+    .participant-card { min-width: 0; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); overflow: hidden; }
+    .participant-card:has(.participant-choice input:checked) { border-color: var(--color-primary); background: var(--color-primary-light); }
+    .participant-choice { border: 0; border-radius: 0; background: transparent; min-height: 44px; }
+    .participant-card:has(.participant-choice input:checked) .participant-choice { color: var(--color-primary-dark); }
+    .participant-control { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 8px 8px; }
+    .step-button { width: 36px; min-width: 36px; min-height: 36px; padding: 0; border: 1px solid var(--color-border-strong); background: var(--color-surface); color: var(--color-primary-dark); font-size: 20px; font-weight: 700; }
+    .step-value { min-width: 34px; text-align: center; font-weight: 800; }
+    .personal-amount { min-height: 38px; padding: 8px 10px; text-align: center; background: var(--color-surface); }
     .field-hint { color: var(--color-text-muted); font-size: 12px; line-height: 1.5; }
     .storage-status { font-size: 13px; line-height: 1.5; color: var(--color-text-secondary); }
     [aria-invalid="true"] { border-color: var(--color-error); }
@@ -371,9 +385,12 @@
       }
 
       .summary-strip,
-      .expense-row {
+      .expense-row,
+      .split-controls {
         grid-template-columns: 1fr;
       }
+
+      .participant-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
       .danger {
         width: 100%;
@@ -510,7 +527,16 @@
     }
 
     function makeExpense(payerId = state.people[0]?.id || "") {
-      return { id: crypto.randomUUID(), payerId, title: "", amount: "", participantIds: null };
+      return {
+        id: crypto.randomUUID(),
+        payerId,
+        title: "",
+        amount: "",
+        participantIds: null,
+        splitMode: "equal",
+        weightValues: {},
+        exactValues: {}
+      };
     }
 
     function remember(editKey = null) {
@@ -545,6 +571,23 @@
           if (!expense || typeof expense.id !== "string" || !expense.id || expenseIds.has(expense.id) || !ids.has(expense.payerId) || typeof expense.title !== "string" || typeof expense.amount !== "string") throw new Error("invalid");
           expenseIds.add(expense.id);
           if (expense.participantIds !== null && (!Array.isArray(expense.participantIds) || expense.participantIds.some(id => !ids.has(id)) || new Set(expense.participantIds).size !== expense.participantIds.length)) throw new Error("invalid");
+          if (!expense.splitMode) expense.splitMode = "equal";
+          if (!["equal", "weight", "exact"].includes(expense.splitMode)) throw new Error("invalid");
+          const legacyValues = expense.splitValues && typeof expense.splitValues === "object" && !Array.isArray(expense.splitValues)
+            ? expense.splitValues
+            : {};
+          if (!expense.weightValues || typeof expense.weightValues !== "object" || Array.isArray(expense.weightValues)) {
+            expense.weightValues = expense.splitMode === "weight" ? { ...legacyValues } : {};
+          }
+          if (!expense.exactValues || typeof expense.exactValues !== "object" || Array.isArray(expense.exactValues)) {
+            expense.exactValues = expense.splitMode === "exact" ? { ...legacyValues } : {};
+          }
+          delete expense.splitValues;
+          for (const values of [expense.weightValues, expense.exactValues]) {
+            for (const [personId, value] of Object.entries(values)) {
+              if (!ids.has(personId) || typeof value !== "string") throw new Error("invalid");
+            }
+          }
         }
         state = saved;
         elements.storageStatus.textContent = "Kaydedilmiş masraflar geri yüklendi.";
@@ -583,6 +626,56 @@
       return state.people.filter(person => selected === null || selected.includes(person.id)).map(person => person.id);
     }
 
+    function allocateByWeights(totalCents, entries) {
+      const totalWeight = entries.reduce((sum, entry) => sum + entry.value, 0);
+      if (!(totalWeight > 0)) return null;
+      const allocations = entries.map((entry) => {
+        const raw = totalCents * entry.value / totalWeight;
+        const cents = Math.floor(raw);
+        return { id: entry.id, cents, remainder: raw - cents };
+      });
+      let remaining = totalCents - allocations.reduce((sum, item) => sum + item.cents, 0);
+      [...allocations]
+        .sort((a, b) => b.remainder - a.remainder || entries.findIndex(item => item.id === a.id) - entries.findIndex(item => item.id === b.id))
+        .slice(0, remaining)
+        .forEach(item => { item.cents += 1; });
+      return allocations;
+    }
+
+    function getExpenseAllocation(expense, amount) {
+      const ids = participantIds(expense);
+      if (!ids.length) return null;
+      const totalCents = Math.round(amount * 100);
+
+      if (expense.splitMode === "exact") {
+        const personal = ids.map(id => {
+          const rawValue = String(expense.exactValues?.[id] || "").trim();
+          const amount = rawValue ? parseAmount(rawValue) : 0;
+          return { id, amount };
+        });
+        if (personal.some(item => !Number.isFinite(item.amount) || item.amount < 0)) return null;
+        const personalCents = personal.map(item => ({ id: item.id, cents: Math.round(item.amount * 100) }));
+        const personalTotal = personalCents.reduce((sum, item) => sum + item.cents, 0);
+        if (personalTotal > totalCents) return null;
+
+        const shared = allocateByWeights(
+          totalCents - personalTotal,
+          ids.map(id => ({ id, value: 1 }))
+        );
+        return personalCents.map((item, index) => ({
+          id: item.id,
+          cents: item.cents + shared[index].cents
+        }));
+      }
+
+      const weighted = ids.map(id => ({
+        id,
+        value: expense.splitMode === "weight" ? Number(String(expense.weightValues?.[id] || "1").replace(",", ".")) : 1
+      }));
+      if (weighted.some(item => !Number.isFinite(item.value) || item.value <= 0)) return null;
+      return allocateByWeights(totalCents, weighted);
+    }
+
     function canRemovePeople(ids) {
       const referenced = state.expenses.some(expense => ids.has(expense.payerId) || participantIds(expense).some(id => ids.has(id)));
       elements.peopleWarning.hidden = !referenced;
@@ -594,12 +687,16 @@
 
     function calculate() {
       const validExpenses = state.expenses
-        .map((expense) => ({
-          ...expense,
-          amount: parseAmount(expense.amount),
-          participantIds: participantIds(expense)
-        }))
-        .filter((expense) => state.people.some(person => person.id === expense.payerId) && expense.participantIds.length && Number.isFinite(expense.amount) && expense.amount > 0);
+        .map((expense) => {
+          const amount = parseAmount(expense.amount);
+          return {
+            ...expense,
+            amount,
+            participantIds: participantIds(expense),
+            allocation: Number.isFinite(amount) && amount > 0 ? getExpenseAllocation(expense, amount) : null
+          };
+        })
+        .filter((expense) => state.people.some(person => person.id === expense.payerId) && expense.allocation);
 
       const totalCents = validExpenses.reduce((sum, expense) => sum + Math.round(expense.amount * 100), 0);
       if (!Number.isSafeInteger(totalCents)) throw new Error("Toplam tutar hesaplama sınırını aşıyor. Tutarları küçültün.");
@@ -611,10 +708,8 @@
       validExpenses.forEach((expense) => {
         const cents = Math.round(expense.amount * 100);
         paidByPerson.set(expense.payerId, paidByPerson.get(expense.payerId) + cents);
-        const share = Math.floor(cents / expense.participantIds.length);
-        const remainder = cents % expense.participantIds.length;
-        expense.participantIds.forEach((id, index) => {
-          owedByPerson.set(id, owedByPerson.get(id) + share + (index < remainder ? 1 : 0));
+        expense.allocation.forEach(({ id, cents: owedCents }) => {
+          owedByPerson.set(id, owedByPerson.get(id) + owedCents);
         });
       });
 
@@ -780,25 +875,53 @@
         const participants = document.createElement("fieldset");
         participants.className = "expense-participants";
         const legend = document.createElement("legend");
-        legend.textContent = "Kimler katıldı?";
+        legend.textContent = "Nasıl bölüşülsün?";
+
+        const splitControls = document.createElement("div");
+        splitControls.className = "split-controls";
+        const modeOptions = document.createElement("div");
+        [
+          ["weight", "Paylı"],
+          ["exact", "Tutar"]
+        ].forEach(([value, text]) => {
+          const optionLabel = document.createElement("label");
+          optionLabel.className = "mode-option";
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = expense.splitMode === value;
+          checkbox.addEventListener("change", () => {
+            remember();
+            expense.splitMode = checkbox.checked ? value : "equal";
+            renderExpenses();
+            renderResults();
+          });
+          optionLabel.append(checkbox, text);
+          modeOptions.appendChild(optionLabel);
+        });
         const allLabel = document.createElement("label");
         allLabel.className = "check-label";
         const allInput = document.createElement("input");
         allInput.type = "checkbox";
         allInput.checked = expense.participantIds === null;
-        allLabel.append(allInput, "Herkes (yeni eklenen kişiler dahil)");
+        allLabel.append(allInput, "Herkes");
         const choices = document.createElement("div");
         choices.className = "participant-options";
-        choices.hidden = allInput.checked;
         allInput.addEventListener("change", () => {
           remember();
-          expense.participantIds = allInput.checked ? null : state.people.map(person => person.id);
+          expense.participantIds = allInput.checked ? null : [];
           renderExpenses();
           renderResults();
         });
+
+        const sharingToggles = document.createElement("div");
+        sharingToggles.className = "sharing-toggles";
+        sharingToggles.append(allLabel, ...modeOptions.children);
+        splitControls.append(sharingToggles);
         state.people.forEach(person => {
+          const card = document.createElement("div");
+          card.className = "participant-card";
           const label = document.createElement("label");
-          label.className = "check-label";
+          label.className = "check-label participant-choice";
           const checkbox = document.createElement("input");
           checkbox.type = "checkbox";
           checkbox.checked = expense.participantIds === null || expense.participantIds.includes(person.id);
@@ -808,12 +931,69 @@
             if (checkbox.checked) selected.add(person.id);
             else selected.delete(person.id);
             expense.participantIds = [...selected];
+            renderExpenses();
             renderResults();
           });
           label.append(checkbox, getPersonName(person.id));
-          choices.appendChild(label);
+          card.appendChild(label);
+
+          if (checkbox.checked && expense.splitMode === "weight") {
+            const control = document.createElement("div");
+            control.className = "participant-control";
+            const decrease = document.createElement("button");
+            const increase = document.createElement("button");
+            const value = document.createElement("span");
+            const stored = Number(String(expense.weightValues[person.id] || "1").replace(",", "."));
+            let currentValue = Number.isFinite(stored) && stored > 0 ? Math.round(stored) : 1;
+            decrease.type = increase.type = "button";
+            decrease.className = increase.className = "step-button";
+            decrease.textContent = "−";
+            increase.textContent = "+";
+            value.className = "step-value";
+            value.textContent = currentValue;
+            decrease.disabled = currentValue <= 1;
+            decrease.addEventListener("click", () => {
+              if (currentValue <= 1) return;
+              remember();
+              currentValue -= 1;
+              expense.weightValues[person.id] = String(currentValue);
+              value.textContent = currentValue;
+              decrease.disabled = currentValue <= 1;
+              renderResults();
+            });
+            increase.addEventListener("click", () => {
+              remember();
+              currentValue += 1;
+              expense.weightValues[person.id] = String(currentValue);
+              value.textContent = currentValue;
+              decrease.disabled = false;
+              renderResults();
+            });
+            control.append(decrease, value, increase);
+            card.appendChild(control);
+          }
+
+          if (checkbox.checked && expense.splitMode === "exact") {
+            const control = document.createElement("div");
+            control.className = "participant-control";
+            const valueInput = document.createElement("input");
+            valueInput.className = "personal-amount";
+            valueInput.inputMode = "decimal";
+            valueInput.placeholder = "0,00 TL";
+            valueInput.value = expense.exactValues[person.id] || "";
+            valueInput.addEventListener("input", () => {
+              remember(`split:${expense.id}:${person.id}`);
+              expense.exactValues[person.id] = valueInput.value;
+              renderResults();
+            });
+            control.appendChild(valueInput);
+            card.appendChild(control);
+          }
+
+          choices.appendChild(card);
         });
-        participants.append(legend, allLabel, choices);
+
+        participants.append(legend, splitControls, choices);
         row.append(payerLabel, titleLabel, amountLabel, deleteButton, participants);
         elements.expensesList.appendChild(row);
       });
@@ -847,7 +1027,7 @@
       const invalidCount = state.expenses.length - validExpenses.length;
       elements.formWarning.hidden = invalidCount === 0;
       elements.formWarning.textContent = invalidCount
-        ? `${invalidCount} harcama satırı, tutarı boş/geçersiz olduğu veya katılımcı seçilmediği için hesaba katılmadı.`
+        ? `${invalidCount} harcama satırı hesaba katılmadı. Tutarı, katılımcıları ve dağıtım değerlerini kontrol edin. Kişisel tutarların toplamı harcama tutarını geçemez.`
         : "";
 
       elements.settlementsList.innerHTML = "";
@@ -908,7 +1088,10 @@
         validExpenses.forEach((expense) => {
           const title = expense.title.trim() || "Harcama";
           lines.push(`${title}: ${formatMoney(expense.amount)} (${getPersonName(expense.payerId)} ödedi)`);
-          lines.push(`Katılanlar: ${expense.participantIds.map(getPersonName).join(", ")}`);
+          const distribution = expense.allocation
+            .map(item => `${getPersonName(item.id)} ${formatMoney(item.cents / 100)}`)
+            .join(", ");
+          lines.push(`Dağılım: ${distribution}`);
         });
       } else {
         lines.push("Harcamalar: Henüz harcama yok.");
