@@ -172,8 +172,7 @@
 
     .controls-row {
       display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
+      gap: 7px;
       margin-bottom: 14px;
     }
 
@@ -256,16 +255,31 @@
     }
 
     .person-row {
-      grid-template-columns: 1fr 42px;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 7px;
     }
 
+    .participant-input-control > button { flex: 0 0 auto; width: auto; min-height: 34px; margin: 3px; }
+    .participant-input-control > .danger { width: 34px; }
+
     .expense-row {
-      grid-template-columns: 1.1fr 0.9fr 0.9fr 42px;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr) minmax(0, 1.2fr);
       padding: 10px;
       border: 1px solid var(--color-border);
       border-radius: var(--radius);
       background: #fbfcfe;
     }
+
+    .expense-summary { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 4px 12px; width: 100%; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface-secondary); color: var(--color-text-primary); text-align: left; }
+    .expense-summary:hover { background: var(--color-surface-hover); }
+    .expenses-list { grid-template-columns: repeat(auto-fit, minmax(min(100%, max(270px, calc((100% - 10px) / 2))), 1fr)); }
+    .expense-card { grid-column: 1 / -1; min-width: 0; }
+    .expense-card.is-collapsed { grid-column: auto; }
+    .expenses-list > .empty { grid-column: 1 / -1; }
+    .expense-summary-title, .expense-summary-meta { min-width: 0; overflow-wrap: anywhere; }
+    .expense-summary-meta { grid-column: 1 / 3; color: var(--color-text-secondary); font-size: 12px; }
+    .expense-summary-price { font-size: 14px; font-weight: 700; }
+    .expense-summary-arrow { grid-column: 3; grid-row: 1 / 3; color: var(--color-text-secondary); }
 
     .result-item,
     .balance-item {
@@ -363,6 +377,35 @@
     .step-button { width: 36px; min-width: 36px; min-height: 36px; padding: 0; border: 1px solid var(--color-border-strong); background: var(--color-surface); color: var(--color-primary-dark); font-size: 20px; font-weight: 700; }
     .step-value { min-width: 34px; text-align: center; font-weight: 800; }
     .personal-amount { min-height: 38px; padding: 8px 10px; text-align: center; background: var(--color-surface); }
+    .unit-mode { display: flex; align-items: stretch; min-width: 0; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); }
+    .unit-mode:has(input:checked) { border-color: var(--color-primary); background: var(--color-primary-light); }
+    .unit-mode .mode-option { flex: 1; min-width: 0; padding: 6px 4px; border: 0; background: transparent; }
+    .unit-button { align-self: center; flex: 0 1 auto; min-width: 0; min-height: 36px; margin: 3px; padding: 3px 6px; background: var(--color-surface-secondary); color: var(--color-text-secondary); font-size: 11px; font-weight: 700; overflow-wrap: anywhere; }
+    .expense-amount-field { display: grid; gap: 7px; min-width: 0; }
+    .expense-amount-heading { display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: baseline; gap: 3px 8px; }
+    .amount-check { font-size: 11px; font-weight: 700; overflow-wrap: anywhere; }
+    .expense-amount-line { display: grid; grid-template-columns: minmax(0, 1fr) 42px; gap: 8px; align-items: center; }
+    .expense-amount-control { position: relative; display: flex; align-items: center; min-height: 42px; border: 1px solid var(--color-border); border-radius: 7px; background: var(--color-surface); }
+    .expense-amount-control:has(input:focus) { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-light); }
+    .expense-amount-control:has(input[aria-invalid="true"]) { border-color: var(--color-error); }
+    .expense-amount-control input { flex: 1 1 0; width: auto; min-width: 0; min-height: 40px; padding-right: 3px; border: 0; background: transparent; box-shadow: none; }
+    .expense-amount-control .unit-button { flex: 0 1 auto; max-width: 52%; }
+    .expense-amount-control .unit-button.has-total { display: grid; align-content: center; gap: 1px; line-height: 1.1; max-width: 64%; }
+    .unit-button-total { color: var(--color-text-primary); font-size: 12px; }
+    .unit-mode .mode-option:has(input:focus-visible) { outline: 2px solid var(--color-primary-dark); }
+    .unit-control { flex-wrap: wrap; }
+    .unit-control input { flex: 1 1 52px; min-width: 0; }
+    .person-value-control { width: 100%; }
+    .unit-preview { color: var(--color-text-secondary); font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
+    .unit-dialog { width: min(340px, calc(100% - 24px)); max-height: calc(100% - 24px); padding: 18px; border: 1px solid var(--color-border); border-radius: 12px; color: var(--color-text-primary); background: var(--color-surface); box-shadow: var(--shadow); }
+    .unit-dialog::backdrop { background: rgb(37 40 58 / .36); }
+    .unit-dialog form { display: grid; gap: 12px; }
+    .unit-dialog h2, .unit-dialog .warning { margin: 0; }
+    .unit-dialog .actions { display: flex; flex-wrap: nowrap; gap: 6px; margin: 0; }
+    .unit-dialog .actions button { flex: 1 1 auto; min-width: 0; padding: 0 6px; font-size: 13px; }
+    .unit-total-control { position: relative; display: block; }
+    .unit-total-control:has(.unit-preview:not([hidden])) input { padding-right: 50%; text-align: left; }
+    .unit-total-control .unit-preview { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); max-width: calc(50% - 12px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
     .field-hint { color: var(--color-text-muted); font-size: 12px; line-height: 1.5; }
     .storage-status { font-size: 13px; line-height: 1.5; color: var(--color-text-secondary); }
     [aria-invalid="true"] { border-color: var(--color-error); }
@@ -379,16 +422,22 @@
     }
 
     @media (max-width: 680px) {
+      .sharing-toggles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.6fr); gap: 6px; }
+
       .app {
         width: min(100% - 20px, 1180px);
         padding-top: 18px;
       }
 
-      .summary-strip,
       .expense-row,
       .split-controls {
         grid-template-columns: 1fr;
       }
+
+      .summary-strip { gap: 6px; }
+      .metric { padding: 10px 8px; }
+      .metric span { min-height: 28px; margin-bottom: 4px; font-size: 11px; line-height: 1.25; }
+      .metric strong { font-size: 16px; }
 
       .participant-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
@@ -436,11 +485,11 @@
         </div>
         <div class="panel-body">
           <div class="controls-row">
-            <label>
-              Kişi sayısı
+            <label for="personCountInput">Kişi sayısı</label>
+            <div class="expense-amount-control participant-input-control">
               <input id="personCountInput" type="number" min="1" max="50" step="1" value="4">
-            </label>
-            <button class="secondary" id="applyCountButton" type="button">Uygula</button>
+              <button class="secondary" id="applyCountButton" type="button">Uygula</button>
+            </div>
           </div>
           <p id="peopleWarning" class="warning" role="status" hidden></p>
           <div class="people-list" id="peopleList"></div>
@@ -483,727 +532,16 @@
     </div>
   </main>
 
-  <script>
-    const currencyFormatter = new Intl.NumberFormat("tr-TR", {
-      style: "currency",
-      currency: "TRY"
-    });
-
-    const STORAGE_KEY = "masrafpay_state_v1";
-    const undoHistory = [];
-    let lastEditKey = null;
-    let state = {
-      people: [
-        { id: crypto.randomUUID(), name: "" },
-        { id: crypto.randomUUID(), name: "" },
-        { id: crypto.randomUUID(), name: "" },
-        { id: crypto.randomUUID(), name: "" }
-      ],
-      expenses: []
-    };
-
-    const elements = {
-      personCountInput: document.getElementById("personCountInput"),
-      applyCountButton: document.getElementById("applyCountButton"),
-      addExpenseButton: document.getElementById("addExpenseButton"),
-      copyResultButton: document.getElementById("copyResultButton"),
-      clearButton: document.getElementById("clearButton"),
-      undoButton: document.getElementById("undoButton"),
-      peopleWarning: document.getElementById("peopleWarning"),
-      storageStatus: document.getElementById("storageStatus"),
-      peopleList: document.getElementById("peopleList"),
-      expensesList: document.getElementById("expensesList"),
-      settlementsList: document.getElementById("settlementsList"),
-      balancesList: document.getElementById("balancesList"),
-      totalAmount: document.getElementById("totalAmount"),
-      perPersonAmount: document.getElementById("perPersonAmount"),
-      peopleCountMetric: document.getElementById("peopleCountMetric"),
-      copyStatus: document.getElementById("copyStatus"),
-      formWarning: document.getElementById("formWarning")
-    };
-
-    function makePerson(name = "") {
-      return { id: crypto.randomUUID(), name };
-    }
-
-    function makeExpense(payerId = state.people[0]?.id || "") {
-      return {
-        id: crypto.randomUUID(),
-        payerId,
-        title: "",
-        amount: "",
-        participantIds: null,
-        splitMode: "equal",
-        weightValues: {},
-        exactValues: {}
-      };
-    }
-
-    function remember(editKey = null) {
-      if (editKey && lastEditKey === editKey) return;
-      undoHistory.push(JSON.stringify(state));
-      if (undoHistory.length > 50) undoHistory.shift();
-      lastEditKey = editKey;
-    }
-
-    function saveState() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        elements.storageStatus.textContent = "Bu tarayıcıya otomatik kaydedildi. Sayfayı yeniden açınca devam edebilirsiniz.";
-      } catch {
-        elements.storageStatus.textContent = "Otomatik kayıt yapılamadı. Sayfayı kapatmadan sonucu kopyalayın; veriler bu oturumda tutuluyor.";
-      }
-    }
-
-    function loadState() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return;
-        const saved = JSON.parse(raw);
-        if (!Array.isArray(saved.people) || saved.people.length < 1 || saved.people.length > 50 || !Array.isArray(saved.expenses)) throw new Error("invalid");
-        const ids = new Set();
-        for (const person of saved.people) {
-          if (!person || typeof person.id !== "string" || !person.id || ids.has(person.id) || typeof person.name !== "string") throw new Error("invalid");
-          ids.add(person.id);
-        }
-        const expenseIds = new Set();
-        for (const expense of saved.expenses) {
-          if (!expense || typeof expense.id !== "string" || !expense.id || expenseIds.has(expense.id) || !ids.has(expense.payerId) || typeof expense.title !== "string" || typeof expense.amount !== "string") throw new Error("invalid");
-          expenseIds.add(expense.id);
-          if (expense.participantIds !== null && (!Array.isArray(expense.participantIds) || expense.participantIds.some(id => !ids.has(id)) || new Set(expense.participantIds).size !== expense.participantIds.length)) throw new Error("invalid");
-          if (!expense.splitMode) expense.splitMode = "equal";
-          if (!["equal", "weight", "exact"].includes(expense.splitMode)) throw new Error("invalid");
-          const legacyValues = expense.splitValues && typeof expense.splitValues === "object" && !Array.isArray(expense.splitValues)
-            ? expense.splitValues
-            : {};
-          if (!expense.weightValues || typeof expense.weightValues !== "object" || Array.isArray(expense.weightValues)) {
-            expense.weightValues = expense.splitMode === "weight" ? { ...legacyValues } : {};
-          }
-          if (!expense.exactValues || typeof expense.exactValues !== "object" || Array.isArray(expense.exactValues)) {
-            expense.exactValues = expense.splitMode === "exact" ? { ...legacyValues } : {};
-          }
-          delete expense.splitValues;
-          for (const values of [expense.weightValues, expense.exactValues]) {
-            for (const [personId, value] of Object.entries(values)) {
-              if (!ids.has(personId) || typeof value !== "string") throw new Error("invalid");
-            }
-          }
-        }
-        state = saved;
-        elements.storageStatus.textContent = "Kaydedilmiş masraflar geri yüklendi.";
-      } catch {
-        elements.storageStatus.textContent = "Önceki kayıt okunamadı veya tarayıcı kaydına erişilemiyor. Yeni değişiklikler yapana kadar mevcut kayıt korunur.";
-      }
-    }
-
-    function formatMoney(value) {
-      return currencyFormatter.format(Math.round((Number(value) + Number.EPSILON) * 100) / 100);
-    }
-
-    function parseAmount(value) {
-      const normalized = String(value).trim().replace(/\s/g, "");
-      let decimalValue;
-      if (/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/.test(normalized)) {
-        decimalValue = normalized.replace(/\./g, "").replace(",", ".");
-      } else if (/^\d+\.\d{1,2}$/.test(normalized)) {
-        decimalValue = normalized;
-      } else {
-        return Number.NaN;
-      }
-      const [whole, fraction = ""] = decimalValue.split(".");
-      const cents = Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
-      return Number.isSafeInteger(cents) ? cents / 100 : Number.NaN;
-    }
-
-    function getPersonName(personId) {
-      const personIndex = state.people.findIndex((item) => item.id === personId);
-      const person = state.people[personIndex];
-      return person?.name.trim() || `Kişi ${personIndex + 1}`;
-    }
-
-    function participantIds(expense) {
-      const selected = expense.participantIds;
-      return state.people.filter(person => selected === null || selected.includes(person.id)).map(person => person.id);
-    }
-
-    function allocateByWeights(totalCents, entries) {
-      const totalWeight = entries.reduce((sum, entry) => sum + entry.value, 0);
-      if (!(totalWeight > 0)) return null;
-      const allocations = entries.map((entry) => {
-        const raw = totalCents * entry.value / totalWeight;
-        const cents = Math.floor(raw);
-        return { id: entry.id, cents, remainder: raw - cents };
-      });
-      let remaining = totalCents - allocations.reduce((sum, item) => sum + item.cents, 0);
-      [...allocations]
-        .sort((a, b) => b.remainder - a.remainder || entries.findIndex(item => item.id === a.id) - entries.findIndex(item => item.id === b.id))
-        .slice(0, remaining)
-        .forEach(item => { item.cents += 1; });
-      return allocations;
-    }
-
-    function getExpenseAllocation(expense, amount) {
-      const ids = participantIds(expense);
-      if (!ids.length) return null;
-      const totalCents = Math.round(amount * 100);
-
-      if (expense.splitMode === "exact") {
-        const personal = ids.map(id => {
-          const rawValue = String(expense.exactValues?.[id] || "").trim();
-          const amount = rawValue ? parseAmount(rawValue) : 0;
-          return { id, amount };
-        });
-        if (personal.some(item => !Number.isFinite(item.amount) || item.amount < 0)) return null;
-        const personalCents = personal.map(item => ({ id: item.id, cents: Math.round(item.amount * 100) }));
-        const personalTotal = personalCents.reduce((sum, item) => sum + item.cents, 0);
-        if (personalTotal > totalCents) return null;
-
-        const shared = allocateByWeights(
-          totalCents - personalTotal,
-          ids.map(id => ({ id, value: 1 }))
-        );
-        return personalCents.map((item, index) => ({
-          id: item.id,
-          cents: item.cents + shared[index].cents
-        }));
-      }
-
-      const weighted = ids.map(id => ({
-        id,
-        value: expense.splitMode === "weight" ? Number(String(expense.weightValues?.[id] || "1").replace(",", ".")) : 1
-      }));
-      if (weighted.some(item => !Number.isFinite(item.value) || item.value <= 0)) return null;
-      return allocateByWeights(totalCents, weighted);
-    }
-
-    function canRemovePeople(ids) {
-      const referenced = state.expenses.some(expense => ids.has(expense.payerId) || participantIds(expense).some(id => ids.has(id)));
-      elements.peopleWarning.hidden = !referenced;
-      elements.peopleWarning.textContent = referenced
-        ? "Bu kişiler harcamalara bağlı olduğu için silinmedi. Önce ilgili harcamaları silin veya ödeyen ve katılımcı seçimlerini düzenleyin. Ödemeler başka bir kişiye aktarılmaz."
-        : "";
-      return !referenced;
-    }
-
-    function calculate() {
-      const validExpenses = state.expenses
-        .map((expense) => {
-          const amount = parseAmount(expense.amount);
-          return {
-            ...expense,
-            amount,
-            participantIds: participantIds(expense),
-            allocation: Number.isFinite(amount) && amount > 0 ? getExpenseAllocation(expense, amount) : null
-          };
-        })
-        .filter((expense) => state.people.some(person => person.id === expense.payerId) && expense.allocation);
-
-      const totalCents = validExpenses.reduce((sum, expense) => sum + Math.round(expense.amount * 100), 0);
-      if (!Number.isSafeInteger(totalCents)) throw new Error("Toplam tutar hesaplama sınırını aşıyor. Tutarları küçültün.");
-      const total = totalCents / 100;
-      const perPerson = state.people.length ? total / state.people.length : 0;
-      const paidByPerson = new Map(state.people.map((person) => [person.id, 0]));
-      const owedByPerson = new Map(state.people.map((person) => [person.id, 0]));
-
-      validExpenses.forEach((expense) => {
-        const cents = Math.round(expense.amount * 100);
-        paidByPerson.set(expense.payerId, paidByPerson.get(expense.payerId) + cents);
-        expense.allocation.forEach(({ id, cents: owedCents }) => {
-          owedByPerson.set(id, owedByPerson.get(id) + owedCents);
-        });
-      });
-
-      const balances = state.people.map((person) => {
-        const paid = paidByPerson.get(person.id) || 0;
-        return {
-          id: person.id,
-          name: getPersonName(person.id),
-          paid: paid / 100,
-          owed: owedByPerson.get(person.id) / 100,
-          balanceCents: paid - owedByPerson.get(person.id),
-          balance: (paid - owedByPerson.get(person.id)) / 100
-        };
-      });
-
-      const debtors = balances
-        .filter((person) => person.balanceCents < 0)
-        .map((person) => ({ ...person, amount: -person.balanceCents }))
-        .sort((a, b) => b.amount - a.amount);
-
-      const creditors = balances
-        .filter((person) => person.balanceCents > 0)
-        .map((person) => ({ ...person, amount: person.balanceCents }))
-        .sort((a, b) => b.amount - a.amount);
-
-      const settlements = [];
-      let debtorIndex = 0;
-      let creditorIndex = 0;
-
-      while (debtorIndex < debtors.length && creditorIndex < creditors.length) {
-        const debtor = debtors[debtorIndex];
-        const creditor = creditors[creditorIndex];
-        const amount = Math.min(debtor.amount, creditor.amount);
-
-        if (amount > 0) {
-          settlements.push({
-            fromId: debtor.id,
-            toId: creditor.id,
-            from: debtor.name,
-            to: creditor.name,
-            amount: amount / 100
-          });
-        }
-
-        debtor.amount -= amount;
-        creditor.amount -= amount;
-
-        if (debtor.amount === 0) debtorIndex += 1;
-        if (creditor.amount === 0) creditorIndex += 1;
-      }
-
-      return { validExpenses, total, perPerson, balances, settlements };
-    }
-
-    function renderPeople() {
-      elements.peopleList.innerHTML = "";
-
-      state.people.forEach((person, index) => {
-        const row = document.createElement("div");
-        row.className = "person-row";
-
-        const label = document.createElement("label");
-        label.textContent = `${index + 1}. kişi`;
-
-        const input = document.createElement("input");
-        input.value = person.name;
-        input.placeholder = `Kişi ${index + 1}`;
-        input.addEventListener("input", () => {
-          remember(`person:${person.id}`);
-          person.name = input.value;
-          renderExpenses();
-          renderResults();
-        });
-
-        const deleteButton = document.createElement("button");
-        deleteButton.className = "danger";
-        deleteButton.type = "button";
-        deleteButton.title = "Kişiyi sil";
-        deleteButton.textContent = "×";
-        deleteButton.disabled = state.people.length === 1;
-        deleteButton.addEventListener("click", () => {
-          if (!canRemovePeople(new Set([person.id]))) return;
-          remember();
-          state.people = state.people.filter((item) => item.id !== person.id);
-          render();
-        });
-
-        label.appendChild(input);
-        row.append(label, deleteButton);
-        elements.peopleList.appendChild(row);
-      });
-    }
-
-    function renderExpenses() {
-      elements.expensesList.innerHTML = "";
-
-      if (state.expenses.length === 0) {
-        elements.expensesList.innerHTML = '<div class="empty">Henüz harcama yok.</div>';
-        return;
-      }
-
-      state.expenses.forEach((expense) => {
-        const row = document.createElement("div");
-        row.className = "expense-row";
-
-        const payerLabel = document.createElement("label");
-        payerLabel.textContent = "Ödeyen";
-        const payerSelect = document.createElement("select");
-
-        state.people.forEach((person) => {
-          const option = document.createElement("option");
-          option.value = person.id;
-          option.textContent = getPersonName(person.id);
-          option.selected = person.id === expense.payerId;
-          payerSelect.appendChild(option);
-        });
-
-        payerSelect.addEventListener("change", () => {
-          remember();
-          expense.payerId = payerSelect.value;
-          renderResults();
-        });
-        payerLabel.appendChild(payerSelect);
-
-        const titleLabel = document.createElement("label");
-        titleLabel.textContent = "Açıklama";
-        const titleInput = document.createElement("input");
-        titleInput.value = expense.title;
-        titleInput.placeholder = "Market, yakıt...";
-        titleInput.addEventListener("input", () => {
-          remember(`title:${expense.id}`);
-          expense.title = titleInput.value;
-          renderResults();
-        });
-        titleLabel.appendChild(titleInput);
-
-        const amountLabel = document.createElement("label");
-        amountLabel.textContent = "Tutar";
-        const amountInput = document.createElement("input");
-        amountInput.inputMode = "decimal";
-        amountInput.value = expense.amount;
-        amountInput.placeholder = "Örn. 1.000,50";
-        amountInput.setAttribute("aria-invalid", String(Boolean(expense.amount) && !(parseAmount(expense.amount) > 0)));
-        amountInput.addEventListener("input", () => {
-          remember(`amount:${expense.id}`);
-          expense.amount = amountInput.value;
-          amountInput.setAttribute("aria-invalid", String(Boolean(expense.amount) && !(parseAmount(expense.amount) > 0)));
-          renderResults();
-        });
-        amountLabel.appendChild(amountInput);
-
-        const deleteButton = document.createElement("button");
-        deleteButton.className = "danger";
-        deleteButton.type = "button";
-        deleteButton.title = "Harcamayı sil";
-        deleteButton.textContent = "×";
-        deleteButton.addEventListener("click", () => {
-          remember();
-          state.expenses = state.expenses.filter((item) => item.id !== expense.id);
-          render();
-        });
-
-        const participants = document.createElement("fieldset");
-        participants.className = "expense-participants";
-        const legend = document.createElement("legend");
-        legend.textContent = "Nasıl bölüşülsün?";
-
-        const splitControls = document.createElement("div");
-        splitControls.className = "split-controls";
-        const modeOptions = document.createElement("div");
-        [
-          ["weight", "Paylı"],
-          ["exact", "Tutar"]
-        ].forEach(([value, text]) => {
-          const optionLabel = document.createElement("label");
-          optionLabel.className = "mode-option";
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.checked = expense.splitMode === value;
-          checkbox.addEventListener("change", () => {
-            remember();
-            expense.splitMode = checkbox.checked ? value : "equal";
-            renderExpenses();
-            renderResults();
-          });
-          optionLabel.append(checkbox, text);
-          modeOptions.appendChild(optionLabel);
-        });
-        const allLabel = document.createElement("label");
-        allLabel.className = "check-label";
-        const allInput = document.createElement("input");
-        allInput.type = "checkbox";
-        allInput.checked = expense.participantIds === null;
-        allLabel.append(allInput, "Herkes");
-        const choices = document.createElement("div");
-        choices.className = "participant-options";
-        allInput.addEventListener("change", () => {
-          remember();
-          expense.participantIds = allInput.checked ? null : [];
-          renderExpenses();
-          renderResults();
-        });
-
-        const sharingToggles = document.createElement("div");
-        sharingToggles.className = "sharing-toggles";
-        sharingToggles.append(allLabel, ...modeOptions.children);
-        splitControls.append(sharingToggles);
-        state.people.forEach(person => {
-          const card = document.createElement("div");
-          card.className = "participant-card";
-          const label = document.createElement("label");
-          label.className = "check-label participant-choice";
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.checked = expense.participantIds === null || expense.participantIds.includes(person.id);
-          checkbox.addEventListener("change", () => {
-            remember();
-            const selected = new Set(participantIds(expense));
-            if (checkbox.checked) selected.add(person.id);
-            else selected.delete(person.id);
-            expense.participantIds = [...selected];
-            renderExpenses();
-            renderResults();
-          });
-          label.append(checkbox, getPersonName(person.id));
-          card.appendChild(label);
-
-          if (checkbox.checked && expense.splitMode === "weight") {
-            const control = document.createElement("div");
-            control.className = "participant-control";
-            const decrease = document.createElement("button");
-            const increase = document.createElement("button");
-            const value = document.createElement("span");
-            const stored = Number(String(expense.weightValues[person.id] || "1").replace(",", "."));
-            let currentValue = Number.isFinite(stored) && stored > 0 ? Math.round(stored) : 1;
-            decrease.type = increase.type = "button";
-            decrease.className = increase.className = "step-button";
-            decrease.textContent = "−";
-            increase.textContent = "+";
-            value.className = "step-value";
-            value.textContent = currentValue;
-            decrease.disabled = currentValue <= 1;
-            decrease.addEventListener("click", () => {
-              if (currentValue <= 1) return;
-              remember();
-              currentValue -= 1;
-              expense.weightValues[person.id] = String(currentValue);
-              value.textContent = currentValue;
-              decrease.disabled = currentValue <= 1;
-              renderResults();
-            });
-            increase.addEventListener("click", () => {
-              remember();
-              currentValue += 1;
-              expense.weightValues[person.id] = String(currentValue);
-              value.textContent = currentValue;
-              decrease.disabled = false;
-              renderResults();
-            });
-            control.append(decrease, value, increase);
-            card.appendChild(control);
-          }
-
-          if (checkbox.checked && expense.splitMode === "exact") {
-            const control = document.createElement("div");
-            control.className = "participant-control";
-            const valueInput = document.createElement("input");
-            valueInput.className = "personal-amount";
-            valueInput.inputMode = "decimal";
-            valueInput.placeholder = "0,00 TL";
-            valueInput.value = expense.exactValues[person.id] || "";
-            valueInput.addEventListener("input", () => {
-              remember(`split:${expense.id}:${person.id}`);
-              expense.exactValues[person.id] = valueInput.value;
-              renderResults();
-            });
-            control.appendChild(valueInput);
-            card.appendChild(control);
-          }
-
-          choices.appendChild(card);
-        });
-
-        participants.append(legend, splitControls, choices);
-        row.append(payerLabel, titleLabel, amountLabel, deleteButton, participants);
-        elements.expensesList.appendChild(row);
-      });
-    }
-
-    function renderResults(persist = true) {
-      if (persist) saveState();
-      elements.undoButton.disabled = undoHistory.length === 0;
-      elements.clearButton.disabled = state.expenses.length === 0;
-      elements.copyResultButton.disabled = false;
-      let calculation;
-      try {
-        calculation = calculate();
-      } catch (error) {
-        elements.formWarning.hidden = false;
-        elements.formWarning.textContent = error.message;
-        elements.totalAmount.textContent = "—";
-        elements.perPersonAmount.textContent = "—";
-        elements.settlementsList.textContent = "Tutarları düzelttikten sonra ödeme planı gösterilecek.";
-        elements.balancesList.textContent = "";
-        elements.copyResultButton.disabled = true;
-        return;
-      }
-      const { validExpenses, total, perPerson, balances, settlements } = calculation;
-
-      elements.totalAmount.textContent = formatMoney(total);
-      elements.perPersonAmount.textContent = formatMoney(perPerson);
-      elements.peopleCountMetric.textContent = `${state.people.length} kişi`;
-      elements.personCountInput.value = state.people.length;
-
-      const invalidCount = state.expenses.length - validExpenses.length;
-      elements.formWarning.hidden = invalidCount === 0;
-      elements.formWarning.textContent = invalidCount
-        ? `${invalidCount} harcama satırı hesaba katılmadı. Tutarı, katılımcıları ve dağıtım değerlerini kontrol edin. Kişisel tutarların toplamı harcama tutarını geçemez.`
-        : "";
-
-      elements.settlementsList.innerHTML = "";
-      if (settlements.length === 0) {
-        elements.settlementsList.innerHTML = '<div class="empty">Dengelenecek ödeme bulunmuyor.</div>';
-      } else {
-        settlements.forEach((settlement) => {
-          const item = document.createElement("div");
-          item.className = "result-item";
-
-          const description = document.createElement("span");
-          const from = document.createElement("strong");
-          const to = document.createElement("strong");
-          const amount = document.createElement("span");
-          from.textContent = settlement.from;
-          to.textContent = settlement.to;
-          amount.className = "amount";
-          amount.textContent = formatMoney(settlement.amount);
-          description.append(from, ", ", to, " kişisine ödesin");
-          item.append(description, amount);
-          elements.settlementsList.appendChild(item);
-        });
-      }
-
-      elements.balancesList.innerHTML = "";
-      balances.forEach((person) => {
-        const item = document.createElement("div");
-        item.className = "balance-item";
-
-        const className = person.balance > 0.009 ? "positive" : person.balance < -0.009 ? "negative" : "neutral";
-        const text = person.balance > 0.009
-          ? `Alacaklı: ${formatMoney(person.balance)}`
-          : person.balance < -0.009
-            ? `Borçlu: ${formatMoney(Math.abs(person.balance))}`
-            : "Dengede";
-
-        const payment = document.createElement("span");
-        const name = document.createElement("strong");
-        const balance = document.createElement("span");
-        name.textContent = person.name;
-        balance.className = className;
-        balance.textContent = text;
-        payment.append(name, ` ödedi: ${formatMoney(person.paid)} · Payı: ${formatMoney(person.owed)}`);
-        item.append(payment, balance);
-        elements.balancesList.appendChild(item);
-      });
-    }
-
-    function createShareText() {
-      const { validExpenses, total, settlements } = calculate();
-      const lines = [
-        "Ortak masraf özeti",
-        ""
-      ];
-
-      if (validExpenses.length > 0) {
-        lines.push("Harcamalar:");
-        validExpenses.forEach((expense) => {
-          const title = expense.title.trim() || "Harcama";
-          lines.push(`${title}: ${formatMoney(expense.amount)} (${getPersonName(expense.payerId)} ödedi)`);
-          const distribution = expense.allocation
-            .map(item => `${getPersonName(item.id)} ${formatMoney(item.cents / 100)}`)
-            .join(", ");
-          lines.push(`Dağılım: ${distribution}`);
-        });
-      } else {
-        lines.push("Harcamalar: Henüz harcama yok.");
-      }
-
-      lines.push("", `Toplam harcama: ${formatMoney(total)}`, "");
-      const invalidCount = state.expenses.length - validExpenses.length;
-      if (invalidCount) lines.push(`Uyarı: ${invalidCount} eksik/geçersiz harcama hesaba katılmadı.`, "");
-
-      if (settlements.length > 0) {
-        lines.push("Ödeme planı:");
-        settlements.forEach((settlement) => {
-          lines.push(`${settlement.from} -> ${settlement.to}: ${formatMoney(settlement.amount)}`);
-        });
-      } else {
-        lines.push("Ödeme planı: Dengelenecek ödeme yok.");
-      }
-
-      return lines.join("\n");
-    }
-
-    async function copyShareText() {
-      const text = createShareText();
-
-      try {
-        await navigator.clipboard.writeText(text);
-        elements.copyStatus.textContent = "Sonuç kopyalandı.";
-      } catch (error) {
-        const textarea = document.createElement("textarea");
-        textarea.value = text;
-        textarea.setAttribute("readonly", "");
-        textarea.style.position = "fixed";
-        textarea.style.left = "-9999px";
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-          if (!document.execCommand("copy")) throw new Error("copy failed");
-          elements.copyStatus.textContent = "Sonuç kopyalandı.";
-        } catch {
-          elements.copyStatus.textContent = "Kopyalama yapılamadı. Tarayıcınızın pano iznini kontrol edip tekrar deneyin.";
-        } finally {
-          textarea.remove();
-        }
-      }
-
-      window.setTimeout(() => {
-        elements.copyStatus.textContent = "";
-      }, 2500);
-    }
-
-    function render(persist = true) {
-      elements.peopleWarning.hidden = true;
-      elements.personCountInput.value = state.people.length;
-      renderPeople();
-      renderExpenses();
-      renderResults(persist);
-    }
-
-    function applyPersonCount() {
-      const count = Number(elements.personCountInput.value);
-      if (!Number.isInteger(count) || count < 1 || count > 50) {
-        elements.peopleWarning.hidden = false;
-        elements.peopleWarning.textContent = "Kişi sayısı 1 ile 50 arasında bir tam sayı olmalı.";
-        return;
-      }
-      elements.peopleWarning.hidden = true;
-      if (count === state.people.length) return;
-      if (count < state.people.length && !canRemovePeople(new Set(state.people.slice(count).map(person => person.id)))) {
-        elements.personCountInput.value = state.people.length;
-        return;
-      }
-      remember();
-      const nextPeople = [...state.people];
-
-      while (nextPeople.length < count) {
-        nextPeople.push(makePerson());
-      }
-
-      if (nextPeople.length > count) {
-        nextPeople.length = count;
-      }
-
-      state.people = nextPeople;
-      render();
-    }
-
-    elements.applyCountButton.addEventListener("click", applyPersonCount);
-    elements.personCountInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") applyPersonCount();
-    });
-    elements.addExpenseButton.addEventListener("click", () => {
-      remember();
-      state.expenses.push(makeExpense());
-      render();
-    });
-    elements.copyResultButton.addEventListener("click", copyShareText);
-    elements.clearButton.addEventListener("click", () => {
-      if (!state.expenses.length) return;
-      remember();
-      state.expenses = [];
-      render();
-    });
-    elements.undoButton.addEventListener("click", () => {
-      if (!undoHistory.length) return;
-      state = JSON.parse(undoHistory.pop());
-      lastEditKey = null;
-      render();
-    });
-    document.addEventListener("focusout", () => { lastEditKey = null; });
-
-    loadState();
-    render(false);
-  </script>
-</body>
-</html>
+  <dialog class="unit-dialog" id="unitDialog" aria-labelledby="unitDialogTitle">
+    <form id="unitForm">
+      <h2 id="unitDialogTitle">Birim</h2>
+      <label>Birim
+        <select id="unitType"></select>
+      </label>
+      <label><span id="unitPriceLabel">Birim fiyatı (TL)</span>
+        <input id="unitPrice" inputmode="decimal" placeholder="Örn. 450" required>
+      </label>
+      <label id="unitTotalField" hidden>Toplam fiyat (TL)
+        <span class="unit-total-control">
+          <input id="unitTotal" inputmode="decimal" placeholder="İsteğe bağlı" aria-describedby="unitQuantityPreview">
+          <span class="unit-preview" id="unitQuantityPreview" hidd
